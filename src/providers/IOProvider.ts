@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
 
 // API server URL
-const IP1 = 'http://192.168.43.144';
 const IP = 'http://192.168.1.115';
 const SOCKET_IP = IP+':3002';
 
@@ -15,12 +14,7 @@ export class IOProvider {
   constructor() {
     console.log("IO Provider Instantiated");
     this.socket = io(SOCKET_IP);
-    // this.handleListeners();
   }
-
-  // handleListeners() {
-  //   this.socket.on('sendItem', this.getItem);
-  // }
 
   claimItem(session_id, user_id, quantity, item_id) {
     console.log("claimItem: Emitting: "+session_id+", "+user_id+", "+quantity+", "+item_id);
@@ -46,11 +40,5 @@ export class IOProvider {
     console.log("editItem: Emitting: "+session_id+", "+price+", "+name+", "+quantity+", "+item_id);
     this.socket.emit('editItem', { session_id: session_id, price: price, name: name, quantity: quantity, item_id: item_id });
   }
-
-  // getItem(json) {
-  //     console.log("Got item: "+json);
-  //     var parsedData = JSON.parse(json.data);
-  //     // @todo Check if the item in data exists (ID). If it does replace it's information. Else add it to the items.
-  // }
 
 }
