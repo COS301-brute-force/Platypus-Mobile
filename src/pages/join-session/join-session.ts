@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import { IonicPage, ModalController, NavController, NavParams } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import { HttpProvider } from '../../providers/HttpProvider';
 import { Timeout } from '../../providers/Timeout';
 import { Alert } from '../../providers/Alert';
+import { QRScanner, QRScannerStatus } from '@ionic-native/qr-scanner';
 
 @IonicPage()
 @Component({
@@ -14,13 +15,18 @@ import { Alert } from '../../providers/Alert';
 export class JoinSessionPage {
 
   session_id: string;
+  color: string;
+  activeBackgroundColor: Object;
+  activeColor: Object;
 
   constructor(
+    private modalCtrl: ModalController,
     private navCtrl: NavController,
     private navParams: NavParams,
     protected storage: Storage,
     private httpProvider: HttpProvider,
-    private timeout: Timeout) { }
+    private timeout: Timeout,
+    private qrScanner: QRScanner) { }
 
   /**
    * Attempts to join a session through promise chaining and saves the response locally
@@ -41,6 +47,43 @@ export class JoinSessionPage {
       this.navCtrl.setRoot("SessionPage");
     });
   }
+
+  openScanner() {
+    window.document.querySelector('ion-app').classList.add('transparentBody');
+    window.document.querySelector('ion-content').classList.add('transparentBody');
+    window.document.querySelector('body').classList.add('transparentBody');
+    window.document.querySelector('html').classList.add('transparentBody');
+    // window.document.querySelector('join-session').classList.add('transparentBody');
+    // window.document.querySelector('#join-session').classList.add('transparentBody');
+    this.qrScanner.prepare().then((status: QRScannerStatus) => {
+        if (status.authorized) {
+          console.log("camera permission was granted");
+           console.log("start scanning");
+           let scanSub = this.qrScanner.scan().subscribe((text: string) => {
+             this.session_id = text;
+             console.log('Scanned session_id: ', text);
+             console.log("hide camera preview");
+             window.document.querySelector('ion-app').classList.remove('transparentBody');
+             window.document.querySelector('ion-content').classList.remove('transparentBody');
+             window.document.querySelector('body').classList.remove('transparentBody');
+             this.qrScanner.hide();
+             console.log("stop scanning");
+             scanSub.unsubscribe();
+           });
+
+           console.log("show camera preview");
+          //  window.document.querySelector('ion-app').classList.add('transparentBody');
+          //  window.document.querySelector('ion-content').classList.add('transparentBody');
+           this.qrScanner.show();
+           console.log("wait for user to scan something, then the observable callback will be called");
+
+        } else if (status.denied) {
+          console.log("camera permission was permanently denied. You must use QRScanner.openSettings() method to guide the user to the settings page. Then they can grant the permission from there");
+        } else {
+          console.log("permission was denied, but not permanently. You can ask for permission again at a later time.")
+        }
+      }).catch((e: any) => console.log('Error is ', e));
+    }
 
   /**
    * Attempts to retrieve the locally stored nickname
@@ -130,6 +173,14 @@ export class JoinSessionPage {
         resolve(scope.session_id.toLowerCase());
 
       }, (err) => { reject(err) });
+    });
+  }
+
+  ionViewDidEnter() {
+    this.storage.get('color').then((data) => {
+      this.color = data;
+      this.activeBackgroundColor = { 'background-color': this.color };
+      this.activeColor = { 'color': this.color };
     });
   }
 

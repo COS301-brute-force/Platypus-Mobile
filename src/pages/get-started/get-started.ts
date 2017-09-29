@@ -48,12 +48,16 @@ export class GetStartedPage {
   ionViewWillEnter() {
 
     // Delete for production
-    // this.storage.clear();
+    this.storage.clear();
 
-    this.storage.length().then( length => {
-      if(length >= 2)
-        this.navCtrl.setRoot("HomePage");
-    });
+    // this.storage.length().then( length => {
+    //   if(length >= 2)
+    //     this.navCtrl.setRoot("HomePage");
+    // });
+  }
+
+  ionViewDidEnter() {
+    // this.navCtrl.setRoot("SessionPage");
   }
 
   ionViewDidLoad() {

@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-navbar color="primary" class="split-bill-nav">
+    <ion-title>Session Information</ion-title>
+    <img src="assets/logos/nav-logo.png"/>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding text-center>
+
+  <div offset-8 col-4>
+    <button ion-button (click)="dismiss()">Back</button>
+  </div>
+
+    <ion-grid>
+      <ion-row>
+        <ion-col col-12 text-left>
+          <p ion-text color="primary" class="bold">
+            Session ID
+          </p>
+        </ion-col>
+        <ion-col col-12>
+          <h1 ion-text class="bold selectable" color="light">
+            {{ session_id }}
+          </h1>
+        </ion-col>
+        <ion-col col-12 text-left>
+          <p ion-text color="primary" class="bold">
+            QR Code
+          </p>
+        </ion-col>
+        <ion-col col-12>
+          <ngx-qrcode qrc-element-type="url" [qrc-value] = "session_id"></ngx-qrcode>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+</ion-content>

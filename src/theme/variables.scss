@@ -107,7 +107,7 @@ body ion-list .input-box {
 }
 
 h1, h2, h3, h4, h5, h6, p {
-  font-weight: normal !important;
+  font-weight: normal;
   font-family: 'roboto' !important;
 }
 .loading-wrapper {
@@ -118,4 +118,15 @@ ion-spinner * {
   width: 50px !important;
   height: 50px !important;
   stroke: #FFF !important;
+}
+.bold {
+  font-weight: bold;
+}
+.selectable {
+  user-select: auto !important;
+}
+.transparentBody {
+  background: none transparent !important;
+  background-color: transparent !important;
+  z-index: 100;
 }

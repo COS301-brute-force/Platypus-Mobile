@@ -5,6 +5,10 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
 import { HTTP } from '@ionic-native/http';
 
+// QR
+import { NgxQRCodeModule  } from 'ngx-qrcode2';
+import { QRScanner } from '@ionic-native/qr-scanner';
+
 // Store user data locally
 import { IonicStorageModule } from '@ionic/storage';
 
@@ -21,30 +25,35 @@ import { GetStartedPage } from '../pages/get-started/get-started';
 // Modals
 import { ProfileModal } from '../modals/profile/profile';
 import { AboutModal } from '../modals/about/about';
+import { SessionInfoModal } from '../modals/session-info/session-info';
 
 @NgModule({
   declarations: [
     MyApp,
     GetStartedPage,
     ProfileModal,
-    AboutModal
+    AboutModal,
+    SessionInfoModal,
   ],
   imports: [
     BrowserModule,
     IonicModule.forRoot(MyApp),
-    IonicStorageModule.forRoot()
+    IonicStorageModule.forRoot(),
+    NgxQRCodeModule,
   ],
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,
     GetStartedPage,
     ProfileModal,
-    AboutModal
+    AboutModal,
+    SessionInfoModal,
   ],
   providers: [
     StatusBar,
     SplashScreen,
     Camera,
+    QRScanner,
     FileTransfer,
     File,
     HTTP,

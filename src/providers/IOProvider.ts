@@ -3,7 +3,8 @@ import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
 
 // API server URL
-const IP = 'http://192.168.43.144';
+const IP1 = 'http://192.168.43.144';
+const IP = 'http://192.168.1.115';
 const SOCKET_IP = IP+':3002';
 
 @Injectable()

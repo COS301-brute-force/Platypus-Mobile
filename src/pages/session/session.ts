@@ -34,8 +34,11 @@ export class SessionPage {
   maxId: number;
   scope: any;
   selectedItems: string;
+  isEditing: boolean;
+  modal: any;
 
   constructor(
+    private modalCtrl: ModalController,
     private navCtrl: NavController,
     private navParams: NavParams,
     private storage: Storage,
@@ -59,6 +62,17 @@ export class SessionPage {
       this.sessionOwner = "Duart";  // @todo Get this info from the server upon establishing a connection
       this.selectedItems = "all-items";
 
+      this.isEditing = false;
+
+  }
+
+  /**
+   * Opens a modal with the specified name
+   * @param {String} modal The name of the modal to open
+   */
+  openModal(modal): void {
+    this.modal = this.modalCtrl.create(modal);
+    this.modal.present();
   }
 
   /**
@@ -90,6 +104,7 @@ export class SessionPage {
    * Promise chain of authentication checks
    */
   ionViewDidEnter() {
+    this.alertService.sendAlert("Please ensure item prices, names and quantities are correct!", 10000);
     this.loadResources(this)
     .then((data) => { this.validateSessionData(this) }, (err) => {this.redirectHome(err, this)})
     .then((data) => { this.getAllSessionData(this) }, (err) => {this.redirectHome(err, this)})
@@ -228,7 +243,7 @@ export class SessionPage {
    */
   removeItem(item) {
     item.incrementQuantity();
-    this.ioProvider.claimItem(this.session_id, this.user_id, item.getMyQuantity(), item.getId());
+    this.ioProvider.unclaimItem(this.session_id, this.user_id, item.getMyQuantity(), item.getId());
   }
 
   /**
@@ -249,6 +264,8 @@ export class SessionPage {
   editItem(item) {
 
     console.log("Editing: "+item.getName()+", ID: "+item.getId());
+
+    this.isEditing = true;
 
     var intervalId = setInterval(function() {
 
@@ -279,6 +296,7 @@ export class SessionPage {
   closeEdit(item, event) {
 
     console.log("Closing: "+item.getName());
+    this.isEditing = false
     var itemContainer = document.getElementById(item.getId());
 
     if((<HTMLElement>itemContainer.querySelector(".card-drag")).style.display == "none") {
@@ -300,6 +318,7 @@ export class SessionPage {
 
     }
   }
+
 
   /**
    * Returns the total of the bill/reciept

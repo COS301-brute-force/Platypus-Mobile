@@ -2,6 +2,18 @@ page-session {
 
 }
 
+ion-footer {
+  -webkit-transition: all ease 1s;
+  transition: all ease 1s;
+  margin-bottom: 0vh;
+}
+
+.slideDown {
+  -webkit-transition: all ease 1s;
+  transition: all ease 1s;
+  margin-bottom: -50vh;
+}
+
 #session .scroll-content {
   background-image: url("../../assets/logos/nav-logo.png");
   background-repeat: no-repeat;

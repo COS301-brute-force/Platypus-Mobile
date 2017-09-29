@@ -17,6 +17,10 @@
     </ion-item>
   </ion-list>
 
-  <button ion-button (click)='joinSession()' >Join</button>
+  <div offset-2 col-8>
+    <button ion-button (click)="openScanner()">Scan QR Code</button>
+  </div>
+
+  <button ion-button (click)='joinSession()' [ngStyle]="activeBackgroundColor" >Join</button>
 
 </ion-content>

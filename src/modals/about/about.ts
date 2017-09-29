@@ -7,6 +7,8 @@ import { ViewController } from 'ionic-angular';
 })
 export class AboutModal {
 
+  public value: string;
+
   constructor(
     private viewController: ViewController) {}
 

@@ -10,10 +10,15 @@ export class Alert {
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController) {}
 
-    public sendAlert(alertMessage) {
+    public sendAlert(alertMessage);
+    public sendAlert(alertMessage, alertTime);
+
+    public sendAlert(alertMessage, alertTime?) {
+      var time = 5000;
+      if(alertTime) { time = alertTime; }
       let toast = this.toastCtrl.create({
         message: alertMessage,
-        duration: 5000,
+        duration: time,
         showCloseButton: true,
         closeButtonText: "Ok",
         position: 'top'

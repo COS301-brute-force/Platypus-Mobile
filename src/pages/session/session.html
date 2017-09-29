@@ -82,9 +82,6 @@
 
     </ion-item-sliding>
 
-    <!-- @todo Fix -->
-    <!-- <ng-container *ngIf="itemIter.editing == true; then editItem(itemIter)"></ng-container> -->
-
     </ng-container>
 
     <ion-item class="create-item">
@@ -143,7 +140,7 @@
   </ion-list>
 
 </ion-content>
-<ion-footer>
+<ion-footer [ngClass]="{'slideDown': isEditing}">
   <ion-toolbar color="primary">
     <ion-title class="bill-total">Bill Total<span class="bill-total-amount">R{{ getTotal().toFixed(2) }}</span></ion-title>
     <ion-title [ngStyle]="{ backgroundColor: color }" class="bill-nickname">{{nickname}}</ion-title>

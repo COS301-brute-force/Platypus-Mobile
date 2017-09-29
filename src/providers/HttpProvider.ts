@@ -4,7 +4,8 @@ import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-nati
 import { File } from '@ionic-native/file';
 
 // API server URL
-const IP = 'http://192.168.43.144';
+const IP1 = 'http://192.168.43.144';
+const IP = 'http://192.168.1.115';
 const URL = IP+':3000/mobile';
 const HEADERS = {'Content-Type': 'application/x-www-form-urlencoded'};
 

@@ -41,11 +41,10 @@ export class CreateSessionPage {
       quality: 100,
       destinationType: this.camera.DestinationType.FILE_URI,
       sourceType: this.camera.PictureSourceType.CAMERA,
-      allowEdit: false,
+      allowEdit: true,
       encodingType: this.camera.EncodingType.JPEG,
       saveToPhotoAlbum: false,
 	    correctOrientation: true
-
     };
 
     console.log("Accessing device's camera");
