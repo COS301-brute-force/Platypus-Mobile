@@ -58,6 +58,13 @@ export class Item {
     }
   }
 
+  public decrementAllQuantity() {
+    if(this.quantity > 0) {
+      this.myQuantity += this.quantity;
+      this.quantity = 0;
+    }
+  }
+
   public incrementQuantity() {
     if(this.myQuantity > 0) {
       this.quantity++;

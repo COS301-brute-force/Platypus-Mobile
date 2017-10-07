@@ -232,9 +232,8 @@ export class SessionPage {
    * @param  {any} item The item to be added
    */
   addAllItems(item) {
-    while(item.getQuantity() != 0)
-      item.decrementQuantity();
-    this.ioProvider.unclaimItem(this.session_id, this.user_id, item.getMyQuantity(), item.getId());
+    item.decrementAllQuantity();
+    this.ioProvider.claimItem(this.session_id, this.user_id, item.getMyQuantity(), item.getId());
   }
 
   /**
@@ -310,10 +309,21 @@ export class SessionPage {
       (<HTMLElement>itemContainer.querySelector(".card-confirm")).style.display="none";
 
       if(item.getId() == -1) {
-        this.ioProvider.createItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity());
+
+        // If item has no values, don't emit it
+        if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
+          this.ioProvider.createItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity());
         this.items.splice(this.items.indexOf(item), 1);
+
       } else {
-        this.ioProvider.editItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity(), item.getId());
+        
+        // If items has no values after editing, delete the item
+        if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
+          this.ioProvider.editItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity(), item.getId());
+        else {
+          // @todo Call deleteItem
+          this.items.splice(this.items.indexOf(item), 1);
+        }
       }
 
     }
@@ -366,7 +376,6 @@ export class SessionPage {
    */
   leaveSession() {
     // @todo Ask the user if they're sure
-    // @todo Inform the API this user is disconnecting
     this.navCtrl.setRoot("HomePage");
   }
 
@@ -380,7 +389,6 @@ export class SessionPage {
    */
   handleSocketListeners() {
     this.socket.on('sendItem', (data) => {
-      console.log("TRACE: Detected change");
       this.socketGetItem(data, this);
     });
   }
@@ -392,13 +400,9 @@ export class SessionPage {
    */
   socketGetItem(parsedData, scope) {
     var isFound = false;
-    console.log("Got item: ");
-    console.log(parsedData);
-    console.log(this.session_id+" "+parsedData.data.attributes.session_id);
     if(scope.session_id == parsedData.data.attributes.session_id) {
       for(let itemIter of scope.items) {
         if(itemIter.getId() == parsedData.data.attributes.item.i_id) {
-          console.log("Editing old item");
           isFound = true;
           itemIter.setPrice(parsedData.data.attributes.item.i_price);
           itemIter.setName(parsedData.data.attributes.item.i_name);
@@ -406,7 +410,6 @@ export class SessionPage {
         }
       }
       if(!isFound) {
-        console.log("Adding new item");
         scope.items.push(new Item(parsedData.data.attributes.item.i_price, parsedData.data.attributes.item.i_quantity, parsedData.data.attributes.item.i_name, parsedData.data.attributes.item.i_id));
       }
     }

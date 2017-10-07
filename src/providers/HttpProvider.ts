@@ -4,8 +4,9 @@ import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-nati
 import { File } from '@ionic-native/file';
 
 // API server URL
-const IP = 'http://192.168.1.115';
-const URL = IP+':3000/mobile';
+const IP = 'http://192.168.1.110';
+const PORT = ':3000';
+const URL = IP+PORT+'/mobile';
 const HEADERS = {'Content-Type': 'application/x-www-form-urlencoded'};
 
 @Injectable()
@@ -24,7 +25,10 @@ export class HttpProvider {
   * @param  {String}  color     The color chosen by the owner
   * @return {String}            The JSON string containing a session_id and user_id
   */
-  createSession(nickname, color) {
+  createSession(result) {
+
+    var nickname = result[0];
+    var color = result[1];
 
     console.log("Sending Data...");
     let data = {"nickname": nickname.toLowerCase(), "color": color.toLowerCase()};

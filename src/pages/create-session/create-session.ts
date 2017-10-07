@@ -54,26 +54,26 @@ export class CreateSessionPage {
       console.log("Sending data to HTTP");
       thisPage.timeout.startTimeout("Launch device camera");
       thisPage.httpProvider.sendSessionImage(imageData, session_id)
-        .then((data) => {
+      .then((data) => {
 
-          thisPage.timeout.endTimeout();
-          console.log("Success: "+data);
+        thisPage.timeout.endTimeout();
+        console.log("Success: "+data);
 
-          console.log("Redirecting to SessionPage");
-          thisPage.navCtrl.setRoot("SessionPage");
+        console.log("Redirecting to SessionPage");
+        thisPage.navCtrl.setRoot("SessionPage");
 
-          // console.log("Cleaning up");
-          // thisPage.camera.cleanup().then((data) => {
-          //   console.log("Clean up successful");
-          // }, (err) => {
-          //   console.log("Clean up error: "+err);
-          // });
-        }, (err) => {
-          console.log("Error Target: "+err.target);
-          console.log("Error Source: "+err.source.substr(0,1000));
-          console.log("Error Code: "+err.code);
-          console.log("Error Status: "+err.http_status);
-        });
+        // console.log("Cleaning up");
+        // thisPage.camera.cleanup().then((data) => {
+        //   console.log("Clean up successful");
+        // }, (err) => {
+        //   console.log("Clean up error: "+err);
+        // });
+      }, (err) => {
+        console.log("Error Target: "+err.target);
+        console.log("Error Source: "+err.source.substr(0,1000));
+        console.log("Error Code: "+err.code);
+        console.log("Error Status: "+err.http_status);
+      });
     }, (err) => {
       console.log("Camera error occured: "+err);
     });
@@ -84,40 +84,23 @@ export class CreateSessionPage {
    * Calls the HttpProviders create session functions
    */
   initializeSession() {
+
     var thisPage = this;
-
-    thisPage.timeout.startTimeout("get stored nickname");
-    thisPage.storage.get('nickname').then(nickname => {
-
+    thisPage.timeout.startTimeout("get stored nickname and color");
+    Promise.all([thisPage.storage.get('nickname'), thisPage.storage.get('color')])
+    .then(result => { 
+      thisPage.timeout.endTimeout(); 
+      thisPage.timeout.startTimeout("call http provider's createSession"); 
+      return thisPage.httpProvider.createSession(result); 
+    }).then(json => {
+      
       thisPage.timeout.endTimeout();
 
-      console.log("Sending nickname: "+nickname);
+      var session_vars = JSON.parse(json.data);
+      var session_id = session_vars.data.attributes.session_id.toLowerCase();
+      var user_id = session_vars.data.attributes.user_id.toLowerCase();
+      thisPage.storeCreateSessionResponse(session_id, user_id);
 
-      thisPage.timeout.startTimeout("get stored color");
-      thisPage.storage.get('color').then(color => {
-
-        thisPage.timeout.endTimeout();
-
-        console.log("Sending color: "+color);
-
-        console.log("Call http provider's createSession");
-        thisPage.timeout.startTimeout("call http provider's createSession");
-        thisPage.httpProvider.createSession(nickname, color).then(json => {
-
-          thisPage.timeout.endTimeout();
-
-          var session_vars = JSON.parse(json.data);
-
-          console.log("createSession Response JSON: "+session_vars);
-          var session_id = session_vars.data.attributes.session_id.toLowerCase();
-          console.log("createSession Response JSON session_id: "+session_id.toLowerCase());
-          var user_id = session_vars.data.attributes.user_id.toLowerCase();
-          console.log("createSession Response JSON user_id: "+user_id.toLowerCase());
-
-          thisPage.storeCreateSessionResponse(session_id, user_id);
-
-        });
-      });
     });
 
   }
@@ -131,25 +114,16 @@ export class CreateSessionPage {
 
     var thisPage = this;
     thisPage.timeout.startTimeout("store session ID locally");
-    thisPage.storage.set('session_id', session_id).then( (data) => {
-      console.log("Stored session ID: "+session_id);
 
+    Promise.all([ thisPage.storage.set('session_id', session_id), 
+                  thisPage.storage.set('user_id', user_id)])
+    .then( results => {
       thisPage.timeout.endTimeout();
-
-      thisPage.timeout.startTimeout("store user ID locally");
-      thisPage.storage.set('user_id', user_id).then( (data) => {
-
-        thisPage.timeout.endTimeout();
-
-        thisPage.captureImage(session_id);
-
-      }, (err) => {
-        console.log("Storing user_id "+user_id+" in local storage failed...");
-      });
-
+      thisPage.captureImage(session_id);
     }, (err) => {
-      console.log("Storing session_id "+session_id+" in local storage failed...");
+      console.log("Storing user_id "+user_id+" or  session_id "+session_id+" in local storage failed...");
     });
+
   }
 
   ionViewDidLoad() {
