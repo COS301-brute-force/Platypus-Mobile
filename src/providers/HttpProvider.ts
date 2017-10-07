@@ -25,10 +25,10 @@ export class HttpProvider {
   * @param  {String}  color     The color chosen by the owner
   * @return {String}            The JSON string containing a session_id and user_id
   */
-  createSession(result) {
+  createSession(results) {
 
-    var nickname = result[0];
-    var color = result[1];
+    var nickname = results[0];
+    var color = results[1];
 
     console.log("Sending Data...");
     let data = {"nickname": nickname.toLowerCase(), "color": color.toLowerCase()};

@@ -35,6 +35,7 @@ export class SessionPage {
   scope: any;
   selectedItems: string;
   isEditing: boolean;
+  slidingPercent: number;
   modal: any;
 
   constructor(
@@ -180,22 +181,25 @@ export class SessionPage {
    */
   loadResources(scope) {
     return new Promise(function (resolve, reject) {
+      
+      Promise.all([ scope.storage.get('session_id'), 
+                    scope.storage.get('user_id'), 
+                    scope.storage.get('nickname'),
+                    scope.storage.get('color')
+      ]).then( results => {
+        
+        scope.session_id = results[0];
+        scope.user_id = results[1];
+        scope.nickname = results[2];
+        scope.color = results[3];
+        scope.activeBackgroundColor = { 'background-color': scope.color };
+        scope.activeColor = { 'color': scope.color };
+        resolve();
+      
+      }, (errors) => {
 
-      scope.storage.get('session_id').then((data) => {
-        scope.session_id = data;
-        scope.storage.get('user_id').then((data) => {
-          scope.user_id = data;
-          scope.storage.get('nickname').then((data) => {
-            scope.nickname = data;
-            scope.storage.get('color').then((data) => {
-              scope.color = data;
-              scope.activeBackgroundColor = { 'background-color': scope.color };
-              scope.activeColor = { 'color': scope.color };
-              console.log(scope.color);
-              resolve();
-            });
-          });
-        });
+        console.log(errors);
+
       });
     });
   }
@@ -245,6 +249,24 @@ export class SessionPage {
     this.ioProvider.unclaimItem(this.session_id, this.user_id, item.getMyQuantity(), item.getId());
   }
 
+  swipeLeftItemHandler(ionItem, slider) {
+    if(!this.isEditing) {
+      if(slider.getSlidingPercent() == 0.0){
+
+        // @todo Clicking on the item when it is first created doesn't work
+        slider.setElementClass("active-sliding", true);
+        slider.setElementClass("active-slide", true);
+        slider.setElementClass("active-options-right", true);
+        slider.setElementClass("active-swipe-right", true);
+        ionItem.setElementStyle('transition', null);
+        ionItem.setElementStyle("transform", "translate3d(-88px, 0px, 0px)");
+        slider.moveSliding(88);
+        slider.endSliding(0.3);
+      }
+
+    }
+  }
+
   /**
    * Calls the required functions for editing items
    * @param  {any} item   The item to edit
@@ -287,46 +309,50 @@ export class SessionPage {
     }, 100);
   }
 
+  onDrag(item, event) {
+    this.closeEdit(item);
+  }
+
 
   /**
    * Closes the edit inputs and buttons
    * @param  {any} item  The item which is being edited]
    */
-  closeEdit(item, event) {
+  closeEdit(item) {
+    setTimeout(()=>{
+      console.log("Closing: "+item.getName());
+      var itemContainer = document.getElementById(item.getId());
 
-    console.log("Closing: "+item.getName());
-    this.isEditing = false
-    var itemContainer = document.getElementById(item.getId());
+      if((<HTMLElement>itemContainer.querySelector(".card-drag")).style.display == "none") {
 
-    if((<HTMLElement>itemContainer.querySelector(".card-drag")).style.display == "none") {
+        var elementList = <NodeListOf<HTMLElement>>itemContainer.querySelectorAll(".edit-item-input");
 
-      var elementList = <NodeListOf<HTMLElement>>itemContainer.querySelectorAll(".edit-item-input");
+        for (var i = 0; i < elementList.length; ++i)
+            elementList[i].style.display = "none";
 
-      for (var i = 0; i < elementList.length; ++i)
-          elementList[i].style.display = "none";
+        (<HTMLElement>itemContainer.querySelector(".card-drag")).style.display="inline";
+        (<HTMLElement>itemContainer.querySelector(".card-confirm")).style.display="none";
 
-      (<HTMLElement>itemContainer.querySelector(".card-drag")).style.display="inline";
-      (<HTMLElement>itemContainer.querySelector(".card-confirm")).style.display="none";
+        if(item.getId() == -1) {
 
-      if(item.getId() == -1) {
+          // If item has no values, don't emit it
+          if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
+            this.ioProvider.createItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity());
+          // this.items.splice(this.items.indexOf(item), 1);
 
-        // If item has no values, don't emit it
-        if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
-          this.ioProvider.createItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity());
-        this.items.splice(this.items.indexOf(item), 1);
-
-      } else {
-        
-        // If items has no values after editing, delete the item
-        if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
-          this.ioProvider.editItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity(), item.getId());
-        else {
-          // @todo Call deleteItem
-          this.items.splice(this.items.indexOf(item), 1);
+        } else {
+          
+          // If items has no values after editing, delete the item
+          if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
+            this.ioProvider.editItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity(), item.getId());
+          else {
+            // @todo Call deleteItem
+            this.items.splice(this.items.indexOf(item), 1);
+          }
         }
       }
-
-    }
+      this.isEditing = false;
+    }, 100);
   }
 
 

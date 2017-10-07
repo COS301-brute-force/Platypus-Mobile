@@ -37,9 +37,9 @@
   <ion-list *ngSwitchCase="'all-items'">
     <ng-container *ngFor="let itemIter of items; let index = index; trackBy:trackByIndex;">
 
-      <ion-item-sliding class="card-container" #item id="{{itemIter.getId()}}" (ionDrag)="closeEdit(itemIter, $event)">
+      <ion-item-sliding class="card-container active-sliding" #slider id="{{itemIter.getId()}}" (ionDrag)="onDrag(itemIter, $event)">
 
-        <ion-item class="card-top">
+        <ion-item #ionItem (click)="swipeLeftItemHandler(ionItem, slider)" class="card-top">
           <ion-grid>
             <ion-row>
               <ion-col class="card-info card-info-price" col-3>
@@ -75,7 +75,7 @@
         </ion-item-options>
 
         <ion-item-options class="card-bottom" side="left">
-          <button ion-button icon-only round clear small (click)="editItemHandler(itemIter, item)" class="card-modify card-edit">
+          <button ion-button icon-only round clear small (click)="editItemHandler(itemIter, slider)" class="card-modify card-edit">
             <ion-icon name="hammer"></ion-icon>
           </button>
         </ion-item-options>
