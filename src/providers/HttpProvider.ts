@@ -4,7 +4,7 @@ import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-nati
 import { File } from '@ionic-native/file';
 
 // API server URL
-const IP = 'http://192.168.1.110';
+const IP = 'http://10.0.0.6';
 const PORT = ':3000';
 const URL = IP+PORT+'/mobile';
 const HEADERS = {'Content-Type': 'application/x-www-form-urlencoded'};
@@ -79,11 +79,35 @@ export class HttpProvider {
   }
 
   getAllSessionData(session_id) {
-    let url = URL+"/getAllSessionData";
+    let url = URL+"/getItems";
     let data = {"session_id": session_id.toLowerCase()};
     let responseJSON = this.http.post(url, data, HEADERS);
     console.log("Returing response...");
     return responseJSON;
+  }
+
+  getAllUsers(session_id) {
+    let url = URL+"/getUsers";
+    let data = {"session_id": session_id.toLowerCase()};
+    let responseJSON = this.http.post(url, data, HEADERS);
+    console.log("Returing response...");
+    return responseJSON;
+  }
+
+  validateSessionData(session_id, user_id) {
+    let url = URL+"/validateSessionData";
+    let data = {"session_id": session_id.toLowerCase(), "user_id": user_id.toLowerCase()};
+    let response = this.http.post(url, data, HEADERS);
+    console.log("Returing validation response...");
+    return response;
+  }
+
+  getSessionOwner(session_id) {
+    let url = URL+"/getOwner";
+    let data = {"session_id": session_id.toLowerCase()};
+    let response = this.http.post(url, data, HEADERS);
+    console.log("Returing owner response...");
+    return response;
   }
 
 }

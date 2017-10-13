@@ -142,7 +142,7 @@
 </ion-content>
 <ion-footer [ngClass]="{'slideDown': isEditing}">
   <ion-toolbar color="primary">
-    <ion-title class="bill-total">Bill Total<span class="bill-total-amount">R{{ getTotal().toFixed(2) }}</span></ion-title>
+    <ion-title class="bill-total">Bill Total<span class="bill-total-amount">R{{ getBillTotal().toFixed(2) }}</span></ion-title>
     <ion-title [ngStyle]="{ backgroundColor: color }" class="bill-nickname">{{nickname}}</ion-title>
     <ion-title>Due<span class="bill-due">R{{ getDue().toFixed(2) }}</span></ion-title>
     <ion-title>Tip<span class="bill-gratuity">R{{ getGratuity().toFixed(2) }}</span> at

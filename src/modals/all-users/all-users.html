@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-navbar color="primary" class="split-bill-nav">
+    <ion-title>All Users</ion-title>
+    <img src="assets/logos/nav-logo.png"/>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding text-center>
+
+  <div offset-8 col-4>
+    <button ion-button (click)="dismiss()">Back</button>
+  </div>
+
+            
+  <ion-card *ngFor="let userIter of users;" (click)="openUserItems( userIter.getId() )" [ngStyle]="{ 'background-color': userIter.getColor() }">
+    <ion-card-header>
+      <ion-row>
+        <ion-col col-10 text-left class="card-nickname">{{userIter.getNickname()}}</ion-col>
+        <ion-col col-2><ion-icon name="filing"></ion-icon></ion-col>
+      </ion-row>
+    </ion-card-header>
+  </ion-card>
+
+</ion-content>

@@ -20,44 +20,44 @@ export class SessionPage {
   socket: SocketIOClient.Socket;
 
   pages = SESSION_PAGES;
-  total: number;
-  gratuityPercent: number;
-  items: Array<Item>;
-  nickname: string;
-  color: string;
-  session_id: string;
-  user_id: number;
-  sessionOwner: string;
-  activeBackgroundColor: Object;
-  activeColor: Object;
+  billTotal:              number;
+  claimedTotal:           number;
+  gratuityPercent:        number;
+  items:                  Array<Item>;
+  nickname:               string;
+  color:                  string;
+  session_id:             string;
+  user_id:                string;
+  sessionOwner:           string;
+  activeBackgroundColor:  Object;
+  activeColor:            Object;
 
-  maxId: number;
-  scope: any;
-  selectedItems: string;
-  isEditing: boolean;
-  slidingPercent: number;
-  modal: any;
+  maxId:                  number;
+  scope:                  any;
+  selectedItems:          string;
+  isEditing:              boolean;
+  slidingPercent:         number;
+  modal:                  any;
 
   constructor(
-    private modalCtrl: ModalController,
-    private navCtrl: NavController,
-    private navParams: NavParams,
-    private storage: Storage,
+    private modalCtrl:    ModalController,
+    private navCtrl:      NavController,
+    private navParams:    NavParams,
+    private storage:      Storage,
     private alertService: Alert,
 
-    private ioProvider: IOProvider,
+    private ioProvider:   IOProvider,
     private httpProvider: HttpProvider) {
 
       this.socket = ioProvider.socket;
       this.handleSocketListeners();
 
       this.items = new Array<Item>();
-
-      this.items = new Array<Item>();
       this.scope = this;
       this.maxId = 0;
 
-      this.total = this.getTotal();
+      this.billTotal = 0.0;
+      this.claimedTotal = 0.0;
       this.gratuityPercent = 10;
 
       this.sessionOwner = "Duart";  // @todo Get this info from the server upon establishing a connection
@@ -109,7 +109,7 @@ export class SessionPage {
     this.loadResources(this)
     .then((data) => { this.validateSessionData(this) }, (err) => {this.redirectHome(err, this)})
     .then((data) => { this.getAllSessionData(this) }, (err) => {this.redirectHome(err, this)})
-    .then((data) => {}, (err) => { this.redirectHome(err, this) });
+    .then((data) => { this.getSessionOwner(this) }, (err) => { this.redirectHome(err, this) });
   }
 
   /**
@@ -129,7 +129,10 @@ export class SessionPage {
    */
   validateSessionData(scope) {
     return new Promise(function (resolve, reject) {
-      if(1 == 1) {
+
+      var response = scope.httpProvider.validateSessionData();
+
+      if(response == true) {
         console.log("Session validated");
         resolve("Session validated");
       } else {
@@ -162,8 +165,16 @@ export class SessionPage {
    */
   parseItems(json) {
     var parsedData = JSON.parse(json.data);
+
     console.log(parsedData.data.attributes);
     console.log(parsedData.data.attributes.items[0].i_price+" "+parsedData.data.attributes.items[0].i_name+" "+parsedData.data.attributes.items[0].i_quantity+" "+parsedData.data.attributes.items[0].i_id);
+    
+    this.billTotal = parsedData.data.attributes.bill_total;
+    this.claimedTotal = parsedData.data.attributes.claimed_total;
+
+    console.log("Bill Total: "+this.billTotal);
+    console.log("Claimed Total: "+this.claimedTotal);
+
     for(var i = 0; i<parsedData.data.attributes.items.length; i++) {
       this.items.push(new Item(
         parsedData.data.attributes.items[i].i_price,
@@ -357,16 +368,20 @@ export class SessionPage {
 
 
   /**
-   * Returns the total of the bill/reciept
-   * @return {number} The calculated total
+   * Returns the billTotal of the bill/reciept
+   * @return {number} The calculated billTotal
    */
-  getTotal() {
-    var total = 0.0;
-    for(let item of this.items){
-      var numberOfItems: number = item.getQuantity()+item.getMyQuantity();
-      total += item.getPrice()*numberOfItems;
-    }
-    return total;
+  getBillTotal() {
+    // var billTotal = 0.0;
+    // for(let item of this.items){
+    //   var numberOfItems: number = item.getQuantity()+item.getMyQuantity();
+    //   billTotal += item.getPrice()*numberOfItems;
+    // }
+    return this.billTotal;
+  }
+
+  getClaimedTotal() {
+    return this.claimedTotal;
   }
 
   /**
@@ -390,8 +405,8 @@ export class SessionPage {
   }
 
   /**
-   * Calculates the total due after adding the tip
-   * @return {number} The total due by the user
+   * Calculates the billTotal due after adding the tip
+   * @return {number} The billTotal due by the user
    */
   getTotalDue() {
     return this.getGratuity()+this.getDue();
@@ -403,6 +418,18 @@ export class SessionPage {
   leaveSession() {
     // @todo Ask the user if they're sure
     this.navCtrl.setRoot("HomePage");
+  }
+
+  getSessionOwner(scope) {
+    return new Promise(function (resolve, reject) {
+      scope.httpProvider.getSessionOwner(scope.session_id).then( (json) => {
+        var parsedData = JSON.parse(json.data);
+        scope.sessionOwner = parsedData.data.attributes.owner.charAt(0).toUpperCase() + parsedData.data.attributes.owner.substr(1).toLowerCase();
+        resolve();
+      }, (err) => {
+        reject(err);
+      });
+    });
   }
 
 
