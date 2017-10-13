@@ -17,6 +17,6 @@ export const SESSION_PAGES = [
   { title: 'My Items',    component: "",                function: "switchSegments" },
   { title: 'List Users',  component: AllUsersModal,     function: "openModal" },
   { title: 'Bill Info',   component: SessionInfoModal,  function: "openModal" },
-  { title: 'Bill Image',  component: null,              function: "openModal" },
+  // { title: 'Bill Image',  component: null,              function: "openModal" },
   { title: 'Leave Bill',  component: "",                function: "leaveSession" },
 ];

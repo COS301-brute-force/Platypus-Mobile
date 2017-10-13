@@ -238,8 +238,8 @@ export class SessionPage {
    * @param  {any} item The item to be deleted
    */
   deleteItem(item) {
-    this.items.splice(this.items.indexOf(item), 1);
     this.ioProvider.deleteItem(this.session_id, item.getId());
+    this.items.splice(this.items.indexOf(item), 1);
   }
 
   /**
@@ -358,7 +358,8 @@ export class SessionPage {
           // If item has no values, don't emit it
           if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
             this.ioProvider.createItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity());
-          // this.items.splice(this.items.indexOf(item), 1);
+          else
+            this.items.splice(this.items.indexOf(item), 1);
 
         } else {
           
