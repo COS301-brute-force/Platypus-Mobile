@@ -75,9 +75,15 @@
         </ion-item-options>
 
         <ion-item-options class="card-bottom" side="left">
+
           <button ion-button icon-only round clear small (click)="editItemHandler(itemIter, slider)" class="card-modify card-edit">
             <ion-icon name="hammer"></ion-icon>
           </button>
+
+          <button ion-button icon-only round clear small (click)="deleteItemHandler(itemIter, slider)" class="card-modify card-edit">
+              <ion-icon name="trash"></ion-icon>
+          </button>
+
         </ion-item-options>
 
     </ion-item-sliding>
@@ -142,7 +148,12 @@
 </ion-content>
 <ion-footer [ngClass]="{'slideDown': isEditing}">
   <ion-toolbar color="primary">
-    <ion-title class="bill-total">Bill Total<span class="bill-total-amount">R{{ getBillTotal().toFixed(2) }}</span></ion-title>
+    <ion-title class="bill-total">
+      <ion-row>
+        <ion-col col-6>Bill Total<span class="bill-total-amount">R{{ getBillTotal().toFixed(2) }}</span></ion-col>
+        <ion-col col-6>Unclaimed<span class="total-unclaimed-amount">R{{ getUnclaimedTotal().toFixed(2) }}</span></ion-col>
+      </ion-row>
+    </ion-title>
     <ion-title [ngStyle]="{ backgroundColor: color }" class="bill-nickname">{{nickname}}</ion-title>
     <ion-title>Due<span class="bill-due">R{{ getDue().toFixed(2) }}</span></ion-title>
     <ion-title>Tip<span class="bill-gratuity">R{{ getGratuity().toFixed(2) }}</span> at

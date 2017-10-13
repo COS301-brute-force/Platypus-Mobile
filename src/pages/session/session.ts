@@ -21,7 +21,7 @@ export class SessionPage {
 
   pages = SESSION_PAGES;
   billTotal:              number;
-  claimedTotal:           number;
+  billUnclaimedTotal:     number;
   gratuityPercent:        number;
   items:                  Array<Item>;
   nickname:               string;
@@ -57,10 +57,10 @@ export class SessionPage {
       this.maxId = 0;
 
       this.billTotal = 0.0;
-      this.claimedTotal = 0.0;
+      this.billUnclaimedTotal = 0.0;
       this.gratuityPercent = 10;
 
-      this.sessionOwner = "Duart";  // @todo Get this info from the server upon establishing a connection
+      this.sessionOwner = "";
       this.selectedItems = "all-items";
 
       this.isEditing = false;
@@ -130,15 +130,20 @@ export class SessionPage {
   validateSessionData(scope) {
     return new Promise(function (resolve, reject) {
 
-      var response = scope.httpProvider.validateSessionData();
+      scope.httpProvider.validateSessionData(scope.session_id, scope.user_id).then((json) =>{
 
-      if(response == true) {
-        console.log("Session validated");
-        resolve("Session validated");
-      } else {
-        console.log("Session validation broke");
-        reject(Error("Session validation broke"));
-      }
+        var parsedData = JSON.parse(json.data);
+        
+        console.log("Validating: "+parsedData.data.attributes.valid);
+        if(parsedData.data.attributes.valid == true) {
+          console.log("Session validated");
+          resolve("Session validated");
+        } else {
+          console.log("Session validation broke");
+          reject(Error("Session validation broke"));
+        }
+        
+      });      
     });
   }
 
@@ -170,10 +175,10 @@ export class SessionPage {
     console.log(parsedData.data.attributes.items[0].i_price+" "+parsedData.data.attributes.items[0].i_name+" "+parsedData.data.attributes.items[0].i_quantity+" "+parsedData.data.attributes.items[0].i_id);
     
     this.billTotal = parsedData.data.attributes.bill_total;
-    this.claimedTotal = parsedData.data.attributes.claimed_total;
+    this.billUnclaimedTotal = parsedData.data.attributes.bill_unclaimed_total;
 
     console.log("Bill Total: "+this.billTotal);
-    console.log("Claimed Total: "+this.claimedTotal);
+    console.log("Unclaimed: "+this.billUnclaimedTotal);
 
     for(var i = 0; i<parsedData.data.attributes.items.length; i++) {
       this.items.push(new Item(
@@ -222,6 +227,10 @@ export class SessionPage {
       var newItem = new Item(0, 0, "", -1);
       this.items.push(newItem);
       this.editItem(newItem);
+  }
+
+  deleteItemHandler(item, slider) {
+    this.deleteItem(item);
   }
 
   /**
@@ -357,7 +366,7 @@ export class SessionPage {
           if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
             this.ioProvider.editItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity(), item.getId());
           else {
-            // @todo Call deleteItem
+            this.deleteItem(item);
             this.items.splice(this.items.indexOf(item), 1);
           }
         }
@@ -380,8 +389,8 @@ export class SessionPage {
     return this.billTotal;
   }
 
-  getClaimedTotal() {
-    return this.claimedTotal;
+  getUnclaimedTotal() {
+    return this.billUnclaimedTotal;
   }
 
   /**
@@ -424,7 +433,7 @@ export class SessionPage {
     return new Promise(function (resolve, reject) {
       scope.httpProvider.getSessionOwner(scope.session_id).then( (json) => {
         var parsedData = JSON.parse(json.data);
-        scope.sessionOwner = parsedData.data.attributes.owner.charAt(0).toUpperCase() + parsedData.data.attributes.owner.substr(1).toLowerCase();
+        scope.sessionOwner = parsedData.data.attributes.owner;
         resolve();
       }, (err) => {
         reject(err);
@@ -443,6 +452,15 @@ export class SessionPage {
   handleSocketListeners() {
     this.socket.on('sendItem', (data) => {
       this.socketGetItem(data, this);
+    });
+    this.socket.on('updateTotal', (data) => {
+      this.socketUpdateTotal(data, this);
+    });
+    this.socket.on('updateUnclaimedTotal', (data) => {
+      this.socketUpdateUnclaimedTotal(data, this);
+    });
+    this.socket.on('removeItem', (data) => {
+      this.socketRemoveItem(data, this);
     });
   }
 
@@ -466,6 +484,30 @@ export class SessionPage {
         scope.items.push(new Item(parsedData.data.attributes.item.i_price, parsedData.data.attributes.item.i_quantity, parsedData.data.attributes.item.i_name, parsedData.data.attributes.item.i_id));
       }
     }
+  }
+
+  socketUpdateTotal(parsedData, scope) {
+
+    scope.billTotal = parsedData.data.attributes.n_total;
+
+  }
+
+  socketUpdateUnclaimedTotal(parsedData, scope) {
+
+    scope.billUnclaimedTotal = parsedData.data.attributes.n_unclaimed_total;
+
+  }
+
+  socketRemoveItem(parsedData, scope) {
+
+    for(let itemIter of scope.items) {
+
+      if(itemIter.getId() == parsedData.data.attributes.i_id) {
+        this.items.splice(this.items.indexOf(itemIter), 1);
+      }
+
+    }
+
   }
 
 }
