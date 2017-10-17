@@ -26,6 +26,7 @@ import { GetStartedPage } from '../pages/get-started/get-started';
 import { ProfileModal } from '../modals/profile/profile';
 import { AboutModal } from '../modals/about/about';
 import { SessionInfoModal } from '../modals/session-info/session-info';
+import { AllUsersModal } from '../modals/all-users/all-users';
 
 @NgModule({
   declarations: [
@@ -34,6 +35,7 @@ import { SessionInfoModal } from '../modals/session-info/session-info';
     ProfileModal,
     AboutModal,
     SessionInfoModal,
+    AllUsersModal,
   ],
   imports: [
     BrowserModule,
@@ -48,6 +50,7 @@ import { SessionInfoModal } from '../modals/session-info/session-info';
     ProfileModal,
     AboutModal,
     SessionInfoModal,
+    AllUsersModal,
   ],
   providers: [
     StatusBar,

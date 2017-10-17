@@ -6,19 +6,23 @@ import { Storage } from '@ionic/storage';
 
 @IonicPage()
 @Component({
-  selector: 'page-get-started',
-  templateUrl: 'get-started.html',
+  selector:     'page-get-started',
+  templateUrl:  'get-started.html',
 })
 
 export class GetStartedPage {
 
-  nickname: string;
-  color: string;
-  activeColor: Object;
+  nickname:     string;
+  color:        string;
+  activeColor:  Object;
 
-  constructor(private navCtrl: NavController, private navParams: NavParams, private storage: Storage) {
+  constructor(private navCtrl:    NavController, 
+              private navParams:  NavParams, 
+              private storage:    Storage) {
+
     this.color =  "rgb(242, 111, 129)";
     this.activeColor = { 'background-color': this.color };
+    
   }
 
   // Set the user's prefered color to the selected color

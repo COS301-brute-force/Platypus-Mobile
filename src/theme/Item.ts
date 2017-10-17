@@ -1,11 +1,11 @@
 export class Item {
 
-  public id: number;
-  public price: number;
-  public quantity: number;
-  public myQuantity: number;
-  public name: string;
-  public editing: boolean;
+  public id:          number;
+  public price:       number;
+  public quantity:    number;
+  public myQuantity:  number;
+  public name:        string;
+  public editing:     boolean;
 
   constructor(p, q, n, id) {
     this.price = p;

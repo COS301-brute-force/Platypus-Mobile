@@ -20,46 +20,47 @@ export class SessionPage {
   socket: SocketIOClient.Socket;
 
   pages = SESSION_PAGES;
-  total: number;
-  gratuityPercent: number;
-  items: Array<Item>;
-  nickname: string;
-  color: string;
-  session_id: string;
-  user_id: number;
-  sessionOwner: string;
-  activeBackgroundColor: Object;
-  activeColor: Object;
+  billTotal:              number;
+  billUnclaimedTotal:     number;
+  gratuityPercent:        number;
+  items:                  Array<Item>;
+  nickname:               string;
+  color:                  string;
+  session_id:             string;
+  user_id:                string;
+  sessionOwner:           string;
+  activeBackgroundColor:  Object;
+  activeColor:            Object;
 
-  maxId: number;
-  scope: any;
-  selectedItems: string;
-  isEditing: boolean;
-  modal: any;
+  maxId:                  number;
+  scope:                  any;
+  selectedItems:          string;
+  isEditing:              boolean;
+  slidingPercent:         number;
+  modal:                  any;
 
   constructor(
-    private modalCtrl: ModalController,
-    private navCtrl: NavController,
-    private navParams: NavParams,
-    private storage: Storage,
+    private modalCtrl:    ModalController,
+    private navCtrl:      NavController,
+    private navParams:    NavParams,
+    private storage:      Storage,
     private alertService: Alert,
 
-    private ioProvider: IOProvider,
+    private ioProvider:   IOProvider,
     private httpProvider: HttpProvider) {
 
       this.socket = ioProvider.socket;
       this.handleSocketListeners();
 
       this.items = new Array<Item>();
-
-      this.items = new Array<Item>();
       this.scope = this;
       this.maxId = 0;
 
-      this.total = this.getTotal();
+      this.billTotal = 0.0;
+      this.billUnclaimedTotal = 0.0;
       this.gratuityPercent = 10;
 
-      this.sessionOwner = "Duart";  // @todo Get this info from the server upon establishing a connection
+      this.sessionOwner = "";
       this.selectedItems = "all-items";
 
       this.isEditing = false;
@@ -108,7 +109,7 @@ export class SessionPage {
     this.loadResources(this)
     .then((data) => { this.validateSessionData(this) }, (err) => {this.redirectHome(err, this)})
     .then((data) => { this.getAllSessionData(this) }, (err) => {this.redirectHome(err, this)})
-    .then((data) => {}, (err) => { this.redirectHome(err, this) });
+    .then((data) => { this.getSessionOwner(this) }, (err) => { this.redirectHome(err, this) });
   }
 
   /**
@@ -128,13 +129,21 @@ export class SessionPage {
    */
   validateSessionData(scope) {
     return new Promise(function (resolve, reject) {
-      if(1 == 1) {
-        console.log("Session validated");
-        resolve("Session validated");
-      } else {
-        console.log("Session validation broke");
-        reject(Error("Session validation broke"));
-      }
+
+      scope.httpProvider.validateSessionData(scope.session_id, scope.user_id).then((json) =>{
+
+        var parsedData = JSON.parse(json.data);
+        
+        console.log("Validating: "+parsedData.data.attributes.valid);
+        if(parsedData.data.attributes.valid == true) {
+          console.log("Session validated");
+          resolve("Session validated");
+        } else {
+          console.log("Session validation broke");
+          reject(Error("Session validation broke"));
+        }
+        
+      });      
     });
   }
 
@@ -161,8 +170,16 @@ export class SessionPage {
    */
   parseItems(json) {
     var parsedData = JSON.parse(json.data);
+
     console.log(parsedData.data.attributes);
     console.log(parsedData.data.attributes.items[0].i_price+" "+parsedData.data.attributes.items[0].i_name+" "+parsedData.data.attributes.items[0].i_quantity+" "+parsedData.data.attributes.items[0].i_id);
+    
+    this.billTotal = parsedData.data.attributes.bill_total;
+    this.billUnclaimedTotal = parsedData.data.attributes.bill_unclaimed_total;
+
+    console.log("Bill Total: "+this.billTotal);
+    console.log("Unclaimed: "+this.billUnclaimedTotal);
+
     for(var i = 0; i<parsedData.data.attributes.items.length; i++) {
       this.items.push(new Item(
         parsedData.data.attributes.items[i].i_price,
@@ -180,22 +197,25 @@ export class SessionPage {
    */
   loadResources(scope) {
     return new Promise(function (resolve, reject) {
+      
+      Promise.all([ scope.storage.get('session_id'), 
+                    scope.storage.get('user_id'), 
+                    scope.storage.get('nickname'),
+                    scope.storage.get('color')
+      ]).then( results => {
+        
+        scope.session_id = results[0];
+        scope.user_id = results[1];
+        scope.nickname = results[2];
+        scope.color = results[3];
+        scope.activeBackgroundColor = { 'background-color': scope.color };
+        scope.activeColor = { 'color': scope.color };
+        resolve();
+      
+      }, (errors) => {
 
-      scope.storage.get('session_id').then((data) => {
-        scope.session_id = data;
-        scope.storage.get('user_id').then((data) => {
-          scope.user_id = data;
-          scope.storage.get('nickname').then((data) => {
-            scope.nickname = data;
-            scope.storage.get('color').then((data) => {
-              scope.color = data;
-              scope.activeBackgroundColor = { 'background-color': scope.color };
-              scope.activeColor = { 'color': scope.color };
-              console.log(scope.color);
-              resolve();
-            });
-          });
-        });
+        console.log(errors);
+
       });
     });
   }
@@ -209,13 +229,17 @@ export class SessionPage {
       this.editItem(newItem);
   }
 
+  deleteItemHandler(item, slider) {
+    this.deleteItem(item);
+  }
+
   /**
    * Calls the socket provider's delete item
    * @param  {any} item The item to be deleted
    */
   deleteItem(item) {
-    this.items.splice(this.items.indexOf(item), 1);
     this.ioProvider.deleteItem(this.session_id, item.getId());
+    this.items.splice(this.items.indexOf(item), 1);
   }
 
   /**
@@ -232,9 +256,8 @@ export class SessionPage {
    * @param  {any} item The item to be added
    */
   addAllItems(item) {
-    while(item.getQuantity() != 0)
-      item.decrementQuantity();
-    this.ioProvider.unclaimItem(this.session_id, this.user_id, item.getMyQuantity(), item.getId());
+    item.decrementAllQuantity();
+    this.ioProvider.claimItem(this.session_id, this.user_id, item.getMyQuantity(), item.getId());
   }
 
   /**
@@ -244,6 +267,24 @@ export class SessionPage {
   removeItem(item) {
     item.incrementQuantity();
     this.ioProvider.unclaimItem(this.session_id, this.user_id, item.getMyQuantity(), item.getId());
+  }
+
+  swipeLeftItemHandler(ionItem, slider) {
+    if(!this.isEditing) {
+      if(slider.getSlidingPercent() == 0.0){
+
+        // @todo Clicking on the item when it is first created doesn't work
+        slider.setElementClass("active-sliding", true);
+        slider.setElementClass("active-slide", true);
+        slider.setElementClass("active-options-right", true);
+        slider.setElementClass("active-swipe-right", true);
+        ionItem.setElementStyle('transition', null);
+        ionItem.setElementStyle("transform", "translate3d(-88px, 0px, 0px)");
+        slider.moveSliding(88);
+        slider.endSliding(0.3);
+      }
+
+    }
   }
 
   /**
@@ -288,49 +329,69 @@ export class SessionPage {
     }, 100);
   }
 
+  onDrag(item, event) {
+    this.closeEdit(item);
+  }
+
 
   /**
    * Closes the edit inputs and buttons
    * @param  {any} item  The item which is being edited]
    */
-  closeEdit(item, event) {
+  closeEdit(item) {
+    setTimeout(()=>{
+      console.log("Closing: "+item.getName());
+      var itemContainer = document.getElementById(item.getId());
 
-    console.log("Closing: "+item.getName());
-    this.isEditing = false
-    var itemContainer = document.getElementById(item.getId());
+      if((<HTMLElement>itemContainer.querySelector(".card-drag")).style.display == "none") {
 
-    if((<HTMLElement>itemContainer.querySelector(".card-drag")).style.display == "none") {
+        var elementList = <NodeListOf<HTMLElement>>itemContainer.querySelectorAll(".edit-item-input");
 
-      var elementList = <NodeListOf<HTMLElement>>itemContainer.querySelectorAll(".edit-item-input");
+        for (var i = 0; i < elementList.length; ++i)
+            elementList[i].style.display = "none";
 
-      for (var i = 0; i < elementList.length; ++i)
-          elementList[i].style.display = "none";
+        (<HTMLElement>itemContainer.querySelector(".card-drag")).style.display="inline";
+        (<HTMLElement>itemContainer.querySelector(".card-confirm")).style.display="none";
 
-      (<HTMLElement>itemContainer.querySelector(".card-drag")).style.display="inline";
-      (<HTMLElement>itemContainer.querySelector(".card-confirm")).style.display="none";
+        if(item.getId() == -1) {
 
-      if(item.getId() == -1) {
-        this.ioProvider.createItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity());
-        this.items.splice(this.items.indexOf(item), 1);
-      } else {
-        this.ioProvider.editItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity(), item.getId());
+          // If item has no values, don't emit it
+          if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
+            this.ioProvider.createItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity());
+          else
+            this.items.splice(this.items.indexOf(item), 1);
+
+        } else {
+          
+          // If items has no values after editing, delete the item
+          if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
+            this.ioProvider.editItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity(), item.getId());
+          else {
+            this.deleteItem(item);
+            this.items.splice(this.items.indexOf(item), 1);
+          }
+        }
       }
-
-    }
+      this.isEditing = false;
+    }, 100);
   }
 
 
   /**
-   * Returns the total of the bill/reciept
-   * @return {number} The calculated total
+   * Returns the billTotal of the bill/reciept
+   * @return {number} The calculated billTotal
    */
-  getTotal() {
-    var total = 0.0;
-    for(let item of this.items){
-      var numberOfItems: number = item.getQuantity()+item.getMyQuantity();
-      total += item.getPrice()*numberOfItems;
-    }
-    return total;
+  getBillTotal() {
+    // var billTotal = 0.0;
+    // for(let item of this.items){
+    //   var numberOfItems: number = item.getQuantity()+item.getMyQuantity();
+    //   billTotal += item.getPrice()*numberOfItems;
+    // }
+    return this.billTotal;
+  }
+
+  getUnclaimedTotal() {
+    return this.billUnclaimedTotal;
   }
 
   /**
@@ -354,8 +415,8 @@ export class SessionPage {
   }
 
   /**
-   * Calculates the total due after adding the tip
-   * @return {number} The total due by the user
+   * Calculates the billTotal due after adding the tip
+   * @return {number} The billTotal due by the user
    */
   getTotalDue() {
     return this.getGratuity()+this.getDue();
@@ -366,8 +427,19 @@ export class SessionPage {
    */
   leaveSession() {
     // @todo Ask the user if they're sure
-    // @todo Inform the API this user is disconnecting
     this.navCtrl.setRoot("HomePage");
+  }
+
+  getSessionOwner(scope) {
+    return new Promise(function (resolve, reject) {
+      scope.httpProvider.getSessionOwner(scope.session_id).then( (json) => {
+        var parsedData = JSON.parse(json.data);
+        scope.sessionOwner = parsedData.data.attributes.owner;
+        resolve();
+      }, (err) => {
+        reject(err);
+      });
+    });
   }
 
 
@@ -380,8 +452,16 @@ export class SessionPage {
    */
   handleSocketListeners() {
     this.socket.on('sendItem', (data) => {
-      console.log("TRACE: Detected change");
       this.socketGetItem(data, this);
+    });
+    this.socket.on('updateTotal', (data) => {
+      this.socketUpdateTotal(data, this);
+    });
+    this.socket.on('updateUnclaimedTotal', (data) => {
+      this.socketUpdateUnclaimedTotal(data, this);
+    });
+    this.socket.on('removeItem', (data) => {
+      this.socketRemoveItem(data, this);
     });
   }
 
@@ -392,13 +472,9 @@ export class SessionPage {
    */
   socketGetItem(parsedData, scope) {
     var isFound = false;
-    console.log("Got item: ");
-    console.log(parsedData);
-    console.log(this.session_id+" "+parsedData.data.attributes.session_id);
     if(scope.session_id == parsedData.data.attributes.session_id) {
       for(let itemIter of scope.items) {
         if(itemIter.getId() == parsedData.data.attributes.item.i_id) {
-          console.log("Editing old item");
           isFound = true;
           itemIter.setPrice(parsedData.data.attributes.item.i_price);
           itemIter.setName(parsedData.data.attributes.item.i_name);
@@ -406,10 +482,33 @@ export class SessionPage {
         }
       }
       if(!isFound) {
-        console.log("Adding new item");
         scope.items.push(new Item(parsedData.data.attributes.item.i_price, parsedData.data.attributes.item.i_quantity, parsedData.data.attributes.item.i_name, parsedData.data.attributes.item.i_id));
       }
     }
+  }
+
+  socketUpdateTotal(parsedData, scope) {
+
+    scope.billTotal = parsedData.data.attributes.n_total;
+
+  }
+
+  socketUpdateUnclaimedTotal(parsedData, scope) {
+
+    scope.billUnclaimedTotal = parsedData.data.attributes.n_unclaimed_total;
+
+  }
+
+  socketRemoveItem(parsedData, scope) {
+
+    for(let itemIter of scope.items) {
+
+      if(itemIter.getId() == parsedData.data.attributes.i_id) {
+        this.items.splice(this.items.indexOf(itemIter), 1);
+      }
+
+    }
+
   }
 
 }

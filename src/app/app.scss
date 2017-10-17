@@ -21,3 +21,49 @@
 }
 
 $font-family-base: "roboto", sans-serif !default;
+
+// Shared Styles
+
+.grey-text { color: map-get($colors, "accents02") !important; }
+
+body ion-list .input-box {
+  width: 70% !important;
+  border-radius: 10px;
+  border-bottom: none !important;
+  box-shadow: 0 0px 0 0 !important;
+  margin: 0 auto !important;
+  max-width: 300px;
+}
+
+.split-bill-nav img {
+  width: 50px;
+  right: 0;
+  top: 0;
+  margin: 3px 3px 0px 0px;
+  position: absolute;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+  font-weight: normal;
+  font-family: 'roboto' !important;
+}
+.loading-wrapper {
+  background-color:transparent !important;
+  box-shadow: 0px 0px rgba(0,0,0,0) !important;
+}
+ion-spinner * {
+  width: 50px !important;
+  height: 50px !important;
+  stroke: #FFF !important;
+}
+.bold {
+  font-weight: bold;
+}
+.selectable {
+  user-select: auto !important;
+}
+.transparentBody {
+  background: none transparent !important;
+  background-color: transparent !important;
+  z-index: 100;
+}
