@@ -3,9 +3,9 @@ import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
 
 // API server URL
-const IP = 'http://dev.api.split-bill.co.za';
-const PORT = ':3002';
-const SOCKET_IP = IP+PORT;
+const IP = 'http://dev.socket.split-bill.co.za';
+//const PORT = ':3002';
+const SOCKET_IP = IP;
 
 @Injectable()
 export class IOProvider {
