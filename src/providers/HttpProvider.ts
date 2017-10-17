@@ -4,9 +4,9 @@ import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-nati
 import { File } from '@ionic-native/file';
 
 // API server URL
-const IP = 'http://10.0.0.6';
-const PORT = ':3000';
-const URL = IP+PORT+'/mobile';
+const IP = 'http://dev.api.split-bill.co.za';
+//const PORT = ':3000';
+const URL = IP+'/mobile';
 const HEADERS = {'Content-Type': 'application/x-www-form-urlencoded'};
 
 @Injectable()
