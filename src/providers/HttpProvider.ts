@@ -4,7 +4,7 @@ import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-nati
 import { File } from '@ionic-native/file';
 
 // API server URL
-const IP = 'http://platypus-api-dev';
+const IP = 'http://dev.api.split-bill.co.za';
 //const PORT = ':3000';
 const URL = IP+'/mobile';
 const HEADERS = {'Content-Type': 'application/x-www-form-urlencoded'};
