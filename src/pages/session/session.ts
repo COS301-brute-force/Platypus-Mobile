@@ -358,13 +358,12 @@ export class SessionPage {
           // If item has no values, don't emit it
           if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
             this.ioProvider.createItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity());
-          else
-            this.items.splice(this.items.indexOf(item), 1);
+          this.items.splice(this.items.indexOf(item), 1);
 
         } else {
           
           // If items has no values after editing, delete the item
-          if(item.getPrice() != 0 && item.getName() != "" && item.getQuantity() != 0)
+          if(item.getPrice() != 0 && item.getName() != "")
             this.ioProvider.editItem(this.session_id, item.getPrice(), item.getName(), item.getQuantity(), item.getId());
           else {
             this.deleteItem(item);
@@ -478,7 +477,7 @@ export class SessionPage {
           isFound = true;
           itemIter.setPrice(parsedData.data.attributes.item.i_price);
           itemIter.setName(parsedData.data.attributes.item.i_name);
-          itemIter.setQuantity(parsedData.data.attributes.item.i_quantity);
+          itemIter.setQuantity(parsedData.data.attributes.item.i_quantity);          
         }
       }
       if(!isFound) {
@@ -488,14 +487,13 @@ export class SessionPage {
   }
 
   socketUpdateTotal(parsedData, scope) {
-
     scope.billTotal = parsedData.data.attributes.n_total;
 
   }
 
   socketUpdateUnclaimedTotal(parsedData, scope) {
 
-    scope.billUnclaimedTotal = parsedData.data.attributes.n_unclaimed_total;
+    scope.billUnclaimedTotal = parsedData.data.attributes.bill_unclaimed_total;
 
   }
 

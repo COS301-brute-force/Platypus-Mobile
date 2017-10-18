@@ -9,6 +9,13 @@ const IP = 'http://dev.api.split-bill.co.za';
 const URL = IP+'/mobile';
 const HEADERS = {'Content-Type': 'application/x-www-form-urlencoded'};
 
+
+// API server URL
+/* const IP = 'http://10.0.0.11';
+const PORT = ':3000';
+const URL = IP+PORT+'/mobile';
+const HEADERS = {'Content-Type': 'application/x-www-form-urlencoded'}; */
+
 @Injectable()
 export class HttpProvider {
 

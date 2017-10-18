@@ -7,6 +7,10 @@ const IP = 'http://dev.socket.split-bill.co.za';
 //const PORT = ':3002';
 const SOCKET_IP = IP;
 
+/* const IP = 'http://10.0.0.11';
+const PORT = ':3002';
+const SOCKET_IP = IP+PORT; */
+
 @Injectable()
 export class IOProvider {
 
